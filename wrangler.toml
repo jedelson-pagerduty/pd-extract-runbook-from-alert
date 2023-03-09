@@ -1,0 +1,15 @@
+name = "pd-extract-runbook-from-alert"
+main = "src/index.ts"
+compatibility_date = "2022-12-19"
+
+[vars]
+EVENT_SOURCE = "jedelson-pagerduty.extract-runbook-from-alert-webhook.production"
+EVENT_BUS_NAME = "arn:aws:events:us-east-1:233597854772:event-bus/extract-runbook-from-alert-webhook"
+ENABLE_EVENT_LOGGING = "true"
+
+[env.dev]
+
+[env.dev.vars]
+EVENT_SOURCE = "jedelson-pagerduty.extract-runbook-from-alert-webhook.dev"
+EVENT_BUS_NAME = "arn:aws:events:us-east-1:233597854772:event-bus/extract-runbook-from-alert-webhook"
+ENABLE_EVENT_LOGGING = "true"
