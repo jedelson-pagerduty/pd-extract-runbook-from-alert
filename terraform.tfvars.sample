@@ -1,0 +1,2 @@
+event_source = "extract-runbook-from-alert-webhook"
+aws_region   = "us-east-2"
