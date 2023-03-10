@@ -23,6 +23,7 @@ module "log_groups" {
   event_source          = var.event_source
   log_retention_in_days = var.log_retention_in_days
   tag                   = local.tag
+  aws_region            = var.aws_region
 }
 
 module "eventbridge" {
