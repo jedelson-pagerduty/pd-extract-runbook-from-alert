@@ -7,19 +7,6 @@ terraform {
   }
 }
 
-variable "aws_region" {
-  type = string
-}
-
-variable "event_source" {
-  type = string
-}
-
-variable "log_retention_in_days" {
-  type    = number
-  default = 14
-}
-
 provider "aws" {
   region = var.aws_region
 }
@@ -51,10 +38,6 @@ module "eventbridge" {
     aws_sqs_queue.dlq.arn
   ]
 
-  create_connections            = true
-  create_api_destinations       = true
-  attach_api_destination_policy = true
-
   tags = {
     Name = local.tag
   }
@@ -80,12 +63,6 @@ module "eventbridge" {
         name            = "send-logs-to-cloudwatch-dev"
         arn             = module.log_groups["dev"].event_log_group_arn,
         dead_letter_arn = aws_sqs_queue.dlq.arn
-      },
-      {
-        name            = "send-logs-to-test"
-        destination     = "test"
-        attach_role_arn = true
-        dead_letter_arn = aws_sqs_queue.dlq.arn
       }
     ]
     prod = [
@@ -94,27 +71,6 @@ module "eventbridge" {
         arn  = module.log_groups["prod"].event_log_group_arn
       }
     ]
-  }
-
-  connections = {
-    test = {
-      authorization_type = "API_KEY"
-      auth_parameters = {
-        api_key = {
-          key   = "x-signature-id"
-          value = "foo"
-        }
-      }
-    }
-  }
-
-  api_destinations = {
-    test = {
-      description                      = "test"
-      invocation_endpoint              = "https://smee.io/IYwsZW7syiYiv4I"
-      http_method                      = "POST"
-      invocation_rate_limit_per_second = 20
-    }
   }
 }
 
@@ -162,55 +118,6 @@ resource "aws_cloudwatch_log_resource_policy" "eventbridge" {
   policy_name     = "${var.event_source}-resource-policy"
 }
 
-resource "aws_iam_user" "events" {
-  name = var.event_source
-}
-
-resource "aws_iam_access_key" "events" {
-  user = aws_iam_user.events.name
-}
-
-resource "aws_iam_user_policy" "events" {
-  name = "write-events"
-  user = aws_iam_user.events.name
-
-  policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Action" : "events:PutEvents",
-        "Resource" : "${module.eventbridge.eventbridge_bus_arn}"
-      }
-    ]
-  })
-}
-
 resource "aws_sqs_queue" "dlq" {
   name = "${var.event_source}-dlq"
-}
-
-output "aws_region" {
-  value = var.aws_region
-}
-
-output "event_bus_arn" {
-  value = module.eventbridge.eventbridge_bus_arn
-}
-
-output "event_access_key" {
-  value = aws_iam_access_key.events.id
-}
-
-output "event_secret_key" {
-  value     = aws_iam_access_key.events.secret
-  sensitive = true
-}
-
-output "event_source_name_dev" {
-  value = module.log_groups["dev"].event_source_name
-}
-
-output "event_source_name_prod" {
-  value = module.log_groups["prod"].event_source_name
 }
