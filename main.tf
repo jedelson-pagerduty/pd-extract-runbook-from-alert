@@ -69,7 +69,8 @@ module "eventbridge" {
     prod = [
       {
         name = "send-logs-to-cloudwatch-prod"
-        arn  = module.log_groups["prod"].event_log_group_arn
+        arn  = module.log_groups["prod"].event_log_group_arn,
+        dead_letter_arn = aws_sqs_queue.dlq.arn
       }
     ]
   }
