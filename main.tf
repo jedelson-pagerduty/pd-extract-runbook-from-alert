@@ -121,4 +121,8 @@ resource "aws_cloudwatch_log_resource_policy" "eventbridge" {
 
 resource "aws_sqs_queue" "dlq" {
   name = "${var.event_source}-dlq"
+
+  tags = {
+    Name = local.tag
+  }
 }
