@@ -1,4 +1,5 @@
 export interface Env {
+  PD_API_DOMAIN: string
   PD_API_KEY: string
   PD_WEBHOOK_SECRET: string
   AWS_REGION: string

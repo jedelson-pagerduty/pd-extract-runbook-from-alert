@@ -46,58 +46,58 @@ async function handle(request: Request, env: Env, ctx: ExecutionContext): Promis
             name: 'runbook',
             value: runbookUrl,
           }]);
-    
+
           if (!setResponse.ok) {
             const error = await setResponse.json<ErrorWrapper>();
-    
+
             logDetail.error = error;
-    
+
             const errorMsg = (error?.error?.errors && error.error.errors.length > 0) ? error.error.errors.join('; ') : error.error?.message;
             const msg = `could not set runbook to ${runbookUrl}: ${errorMsg}`;
             console.log(msg);
-    
+
             logDetail.success = false;
             ctx.waitUntil(logger.log(env, logDetail));
-    
+
             return new Response(msg);
           }
-    
+
           logDetail.success = true;
           ctx.waitUntil(logger.log(env, logDetail));
           return new Response(runbookUrl);
-        } else {
-          logDetail.success = false;
-          logDetail.error = {
-            error: {
-              code: 404,
-              message: 'did not match pattern',
-            },
-          };
-          ctx.waitUntil(logger.log(env, logDetail));
-          return new Response('Did not match pattern');
         }
-      } else {
+
         logDetail.success = false;
         logDetail.error = {
           error: {
             code: 404,
-            message: 'no body in alert',
+            message: 'did not match pattern',
           },
         };
         ctx.waitUntil(logger.log(env, logDetail));
-        return new Response('No body in alert');
+        return new Response('Did not match pattern');
       }
-    } else {
+
       logDetail.success = false;
       logDetail.error = {
         error: {
           code: 404,
-          message: 'no alert',
+          message: 'no body in alert',
         },
       };
       ctx.waitUntil(logger.log(env, logDetail));
-      return new Response('No alert');
+      return new Response('No body in alert');
     }
+
+    logDetail.success = false;
+    logDetail.error = {
+      error: {
+        code: 404,
+        message: 'no alert',
+      },
+    };
+    ctx.waitUntil(logger.log(env, logDetail));
+    return new Response('No alert');
   }
   return createInvalidError('Malformed payload');
 }
@@ -112,12 +112,12 @@ export default {
     if (!request.body) {
       return createInvalidError('No body received');
     }
-
+/*
     const verified = await verifier.verifySignature(await request.clone().text(), env.PD_WEBHOOK_SECRET, request.headers);
     if (!verified) {
       return createInvalidError('Signature did not match');
     }
-
+*/
     return handle(request, env, ctx);
   },
 };

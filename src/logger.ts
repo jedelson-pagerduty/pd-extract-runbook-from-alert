@@ -16,6 +16,7 @@ export default {
   async log(env: Env, obj: LogEvent): Promise<void> {
     if (env.ENABLE_EVENT_LOGGING !== 'true') {
       console.log('event logging disabled');
+      console.log(obj);
       return;
     }
 
