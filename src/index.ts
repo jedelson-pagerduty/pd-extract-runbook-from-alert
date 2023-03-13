@@ -56,47 +56,24 @@ async function handle(request: Request, env: Env, ctx: ExecutionContext): Promis
             const msg = `could not set runbook to ${runbookUrl}: ${errorMsg}`;
             console.log(msg);
 
-            logDetail.success = false;
-            ctx.waitUntil(logger.log(env, logDetail));
+            ctx.waitUntil(logger.logFailure(env, logDetail));
 
             return new Response(msg);
           }
 
-          logDetail.success = true;
-          ctx.waitUntil(logger.log(env, logDetail));
+          ctx.waitUntil(logger.logSuccess(env, logDetail, runbookUrl));
           return new Response(runbookUrl);
         }
 
-        logDetail.success = false;
-        logDetail.error = {
-          error: {
-            code: 404,
-            message: 'did not match pattern',
-          },
-        };
-        ctx.waitUntil(logger.log(env, logDetail));
+        ctx.waitUntil(logger.logFailure(env, logDetail, 404, 'did not match pattern'));
         return new Response('Did not match pattern');
       }
 
-      logDetail.success = false;
-      logDetail.error = {
-        error: {
-          code: 404,
-          message: 'no body in alert',
-        },
-      };
-      ctx.waitUntil(logger.log(env, logDetail));
+      ctx.waitUntil(logger.logFailure(env, logDetail, 404, 'no body in alert'));
       return new Response('No body in alert');
     }
 
-    logDetail.success = false;
-    logDetail.error = {
-      error: {
-        code: 404,
-        message: 'no alert',
-      },
-    };
-    ctx.waitUntil(logger.log(env, logDetail));
+    ctx.waitUntil(logger.logFailure(env, logDetail, 404, 'no alert'));
     return new Response('No alert');
   }
   return createInvalidError('Malformed payload');
