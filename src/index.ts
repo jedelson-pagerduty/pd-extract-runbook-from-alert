@@ -112,12 +112,12 @@ export default {
     if (!request.body) {
       return createInvalidError('No body received');
     }
-/*
+
     const verified = await verifier.verifySignature(await request.clone().text(), env.PD_WEBHOOK_SECRET, request.headers);
     if (!verified) {
       return createInvalidError('Signature did not match');
     }
-*/
+
     return handle(request, env, ctx);
   },
 };
