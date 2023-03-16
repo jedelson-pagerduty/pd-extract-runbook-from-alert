@@ -10,6 +10,7 @@ export interface LogEvent {
   serviceId: string;
   serviceName: string;
   incidentTitle: string;
+  extra?: string;
 }
 
 async function log(env: Env, obj: LogEvent): Promise<void> {
@@ -46,11 +47,15 @@ async function log(env: Env, obj: LogEvent): Promise<void> {
 }
 
 export default {
-  async logFailure(env: Env, obj: LogEvent, errorCode?: number, errorMsg?: string): Promise<void> {
+  async logFailure(env: Env, obj: LogEvent, errorCode?: number, errorMsg?: string, extra?: any): Promise<void> {
     const fullObj: LogEvent = {
       ...obj,
       success: false,
     };
+    if (extra) {
+      fullObj.extra = JSON.stringify(extra);
+    }
+
     if (errorCode && errorMsg) {
       fullObj.error = {
         error: {

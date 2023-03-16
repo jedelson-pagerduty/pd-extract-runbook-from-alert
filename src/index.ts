@@ -65,11 +65,11 @@ async function handle(request: Request, env: Env, ctx: ExecutionContext): Promis
           return new Response(runbookUrl);
         }
 
-        ctx.waitUntil(logger.logFailure(env, logDetail, 404, 'did not match pattern'));
+        ctx.waitUntil(logger.logFailure(env, logDetail, 404, 'did not match pattern', alert));
         return new Response('Did not match pattern');
       }
 
-      ctx.waitUntil(logger.logFailure(env, logDetail, 404, 'no body in alert'));
+      ctx.waitUntil(logger.logFailure(env, logDetail, 404, 'no body in alert', alert));
       return new Response('No body in alert');
     }
 

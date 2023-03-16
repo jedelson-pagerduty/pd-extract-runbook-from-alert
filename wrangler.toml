@@ -7,3 +7,7 @@ compatibility_date = "2022-12-19"
 [env.dev]
 
 [env.dev.vars]
+
+[env.staging]
+
+[env.staging.vars]
