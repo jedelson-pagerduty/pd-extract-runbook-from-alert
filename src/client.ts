@@ -36,6 +36,11 @@ export class AlertDetails {
   body?: string;
 }
 
+const RETRY_COUNT_SET = 3;
+const RETRY_COUNT_GET_ALERT = 5;
+const RETRY_DELAY_SET = 1000;
+const RETRY_DELAY_GET_ALERT = 500;
+
 function createUrl(env: Env, path: string): string {
   const domain = env.PD_API_DOMAIN || 'api.pagerduty.com';
   return `https://${domain}${path}`;
@@ -55,13 +60,13 @@ function createInit(env: Env, method: string, includeEarlyAccessHeader: boolean 
   return {
     method,
     headers,
-    retryDelay: 1000,
   };
 }
 
 export async function setCustomFieldValues(env: Env, incidentId: string, values: CustomFieldValue[]): Promise<Response> {
   const init = createInit(env, 'PUT', true);
-  init.retries = 3;
+  init.retries = RETRY_COUNT_SET;
+  init.retryDelay = RETRY_DELAY_SET;
   init.retryOn = [500, 429];
   init.body = JSON.stringify({ field_values: values });
 
@@ -70,12 +75,13 @@ export async function setCustomFieldValues(env: Env, incidentId: string, values:
 
 export async function getFirstAlert(env: Env, incidentId: string): Promise<Alert | false> {
   const init = createInit(env, 'GET');
+  init.retryDelay = RETRY_DELAY_GET_ALERT;
 
   let alert;
 
   // sometimes alerts are not fully hydrated immediately after incident creation. This retry logic attempts to ensure that a hydrated alert is used.
   init.retryOn = async function retry(attempt, error, response) {
-    if (attempt === 3) {
+    if (attempt === RETRY_COUNT_GET_ALERT) {
       console.log(`giving up fetching alert after ${attempt} attempts`);
       return false;
     }
@@ -109,7 +115,9 @@ export async function getFirstAlert(env: Env, incidentId: string): Promise<Alert
     return false;
   };
 
-  const result = await fetchRetry(fetch)(createUrl(env, `/incidents/${incidentId}/alerts?limit=1&sort_by=created_at&statuses[]=triggered`), init);
+  const url = `/incidents/${incidentId}/alerts?limit=1&sort_by=created_at&statuses[]=triggered&include[]=body`;
+  console.log(`fetching ${url}`);
+  const result = await fetchRetry(fetch)(createUrl(env, url), init);
   if (result.ok && alert) {
     return alert;
   }
