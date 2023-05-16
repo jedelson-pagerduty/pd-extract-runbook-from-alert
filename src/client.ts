@@ -68,9 +68,9 @@ export async function setCustomFieldValues(env: Env, incidentId: string, values:
   init.retries = RETRY_COUNT_SET;
   init.retryDelay = RETRY_DELAY_SET;
   init.retryOn = [500, 429];
-  init.body = JSON.stringify({ field_values: values });
+  init.body = JSON.stringify({ custom_fields: values });
 
-  return fetchRetry(fetch)(createUrl(env, `/incidents/${incidentId}/field_values`), init);
+  return fetchRetry(fetch)(createUrl(env, `/incidents/${incidentId}/custom_fields/values`), init);
 }
 
 export async function getFirstAlert(env: Env, incidentId: string): Promise<Alert | false> {
