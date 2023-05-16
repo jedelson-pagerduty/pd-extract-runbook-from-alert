@@ -36,7 +36,7 @@ async function handle(request: Request, env: Env, ctx: ExecutionContext): Promis
     if (alert) {
       const body = alert.body?.details?.body;
       if (body) {
-        const match = /RUNBOOK: (?<runbook>[\S]*)/g.exec(body);
+        const match = /(RUNBOOK|Ops Guide): (?<runbook>[\S]*)/g.exec(body);
         if (match?.groups?.runbook) {
           const runbookUrl = match.groups.runbook;
 
