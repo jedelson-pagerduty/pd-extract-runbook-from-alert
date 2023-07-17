@@ -1,6 +1,9 @@
-import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
-import { ErrorWrapper } from './client';
-import { Env } from './env';
+import {
+  EventBridgeClient,
+  PutEventsCommand,
+} from "@aws-sdk/client-eventbridge";
+import { ErrorWrapper } from "./client";
+import { Environment } from "./environment";
 
 export interface LogEvent {
   incidentId: string;
@@ -13,66 +16,76 @@ export interface LogEvent {
   extra?: string;
 }
 
-async function log(env: Env, obj: LogEvent): Promise<void> {
-  if (env.ENABLE_EVENT_LOGGING !== 'true') {
-    console.log('event logging disabled');
-    console.log(obj);
+async function log(environment: Environment, object: LogEvent): Promise<void> {
+  if (environment.ENABLE_EVENT_LOGGING !== "true") {
+    console.log("event logging disabled");
+    console.log(object);
     return;
   }
 
-  const params = {
+  const parameters = {
     Entries: [
       {
-        Detail: JSON.stringify(obj),
-        DetailType: 'extract-runbook-from-alert-webhook',
-        Source: env.EVENT_SOURCE,
-        EventBusName: env.EVENT_BUS_NAME,
+        Detail: JSON.stringify(object),
+        DetailType: "extract-runbook-from-alert-webhook",
+        Source: environment.EVENT_SOURCE,
+        EventBusName: environment.EVENT_BUS_NAME,
       },
     ],
   };
 
   try {
     const ebClient = new EventBridgeClient({
-      region: env.AWS_REGION,
+      region: environment.AWS_REGION,
       credentials: {
-        accessKeyId: env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: environment.AWS_ACCESS_KEY_ID,
+        secretAccessKey: environment.AWS_SECRET_ACCESS_KEY,
       },
     });
-    const data = await ebClient.send(new PutEventsCommand(params));
-    console.log('Success, event sent; requestID:', data);
-  } catch (err) {
-    console.log('Error', err);
+    const data = await ebClient.send(new PutEventsCommand(parameters));
+    console.log("Success, event sent; requestID:", data);
+  } catch (error) {
+    console.log("Error", error);
   }
 }
 
 export default {
-  async logFailure(env: Env, obj: LogEvent, errorCode?: number, errorMsg?: string, extra?: any): Promise<void> {
-    const fullObj: LogEvent = {
-      ...obj,
+  async logFailure(
+    environment: Environment,
+    object: LogEvent,
+    errorCode?: number,
+    errorMessage?: string,
+    extra?: object,
+  ): Promise<void> {
+    const fullObject: LogEvent = {
+      ...object,
       success: false,
     };
     if (extra) {
-      fullObj.extra = JSON.stringify(extra);
+      fullObject.extra = JSON.stringify(extra);
     }
 
-    if (errorCode && errorMsg) {
-      fullObj.error = {
+    if (errorCode && errorMessage) {
+      fullObject.error = {
         error: {
           code: errorCode,
-          message: errorMsg,
+          message: errorMessage,
         },
       };
     }
-    return log(env, fullObj);
+    return log(environment, fullObject);
   },
 
-  async logSuccess(env: Env, obj: LogEvent, runbookUrl: string): Promise<void> {
-    const fullObj: LogEvent = {
-      ...obj,
+  async logSuccess(
+    environment: Environment,
+    object: LogEvent,
+    runbookUrl: string,
+  ): Promise<void> {
+    const fullObject: LogEvent = {
+      ...object,
       success: true,
       runbookUrl,
     };
-    return log(env, fullObj);
+    return log(environment, fullObject);
   },
 };
